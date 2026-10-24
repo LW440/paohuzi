@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>湖南跑胡子 · 联机版</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ==================== 大厅 ==================== -->
+    <section id="screen-lobby" class="screen">
+      <header class="hero">
+        <div class="logo">胡</div>
+        <h1>湖南跑胡子</h1>
+        <p class="subtitle">字牌 · 三人联机</p>
+      </header>
+      <div class="panel lobby-panel">
+        <label for="name-input">你的昵称</label>
+        <input id="name-input" maxlength="12" placeholder="输入昵称" />
+        <div class="mode-row">
+          <label class="mode-opt">
+            <input type="radio" name="mode" value="3" checked />
+            <span>3 人局</span><small>每人 20 张</small>
+          </label>
+          <label class="mode-opt">
+            <input type="radio" name="mode" value="4" />
+            <span>4 人局</span><small>每人 14 张</small>
+          </label>
+        </div>
+        <button id="btn-create" class="primary big">创建房间</button>
+        <div class="divider"><span>或</span></div>
+        <div class="join-row">
+          <input id="code-input" placeholder="6 位房间码" maxlength="6" />
+          <button id="btn-join" class="big">加入房间</button>
+        </div>
+      </div>
+      <button id="btn-rules" class="link-btn">📖 规则说明</button>
+      <footer class="foot">支持局域网联机 · 可添加机器人陪玩</footer>
+    </section>
+
+    <!-- ==================== 房间 ==================== -->
+    <section id="screen-room" class="screen hidden">
+      <div class="room-head">
+        <div class="room-code">
+          房间码 <b id="room-code"></b>
+          <span id="room-mode" class="room-mode"></span>
+          <button id="btn-copy" class="mini">复制</button>
+        </div>
+        <button id="btn-leave-room" class="ghost">离开房间</button>
+      </div>
+      <div id="room-slots" class="slots"></div>
+      <div class="room-actions">
+        <button id="btn-addbot" class="ghost">🤖 添加机器人</button>
+        <button id="btn-ready" class="primary big">准备</button>
+        <button id="btn-rules2" class="link-btn">规则说明</button>
+      </div>
+      <div class="room-tip" id="room-tip"></div>
+      <div class="chatbox">
+        <div id="chat-list"></div>
+        <div class="chat-input-row">
+          <input id="chat-input" placeholder="说点什么…" maxlength="200" />
+          <button id="btn-send-chat" class="mini">发送</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 牌桌 ==================== -->
+    <section id="screen-game" class="screen hidden">
+      <div class="game-topbar">
+        <span class="tb-item">第 <b id="g-round"></b> 局</span>
+        <span class="tb-item">剩牌 <b id="g-wall"></b></span>
+        <span class="tb-item">当前胡数 <b id="g-huval" class="huval">0</b></span>
+        <span class="tb-item" id="g-turn-info"></span>
+        <span class="tb-item timer hidden" id="g-timer"></span>
+        <span class="spacer"></span>
+        <button id="btn-auto" class="ghost mini">托管</button>
+        <button id="btn-exit-game" class="ghost mini">退出</button>
+      </div>
+      <div class="table">
+        <div class="opp-top-row hidden" id="opp-top-row">
+          <div id="opp-top" class="opponent"></div>
+        </div>
+        <div class="opp-row">
+          <div id="opp-left" class="opponent"></div>
+          <div class="center-col">
+            <div id="discard-area"></div>
+            <div id="game-log"></div>
+          </div>
+          <div id="opp-right" class="opponent"></div>
+        </div>
+        <div class="bottom-col">
+          <div id="my-melds" class="meld-row"></div>
+          <div id="action-bar"></div>
+          <div id="my-hand" class="hand"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================== 规则弹窗 ==================== -->
+  <div id="rules-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2>湖南跑胡子规则</h2>
+      <div class="rules-body">
+        <h3>牌与红黑</h3>
+        <p>共 80 张牌：小写「一二三四五六七八九十」与大写「壹贰叁肆伍陆柒捌玖拾」各 4 张。<br/>
+        红牌：<span class="red-text">二、七、十、贰、柒、拾</span>（共 24 张），其余为黑牌，红牌胡数更高。</p>
+        <h3>基本玩法</h3>
+        <p><b>3 人局与 4 人局：</b>每人发 <b>14 张</b>（庄家摸后 15 张），<b>胡牌 = 5 句话</b>。庄家比其他玩家多摸一张牌，最后摸到的那张牌公开亮出展示（开局这张不可抢），随后有 <b>20 秒理牌时间</b>（可拖动整理手牌），理完牌<b>庄家直接出牌</b>（不再摸牌），打出手牌中的任意一张牌。每回合摸 1 张、打 1 张（摸牌后亮出展示 <b>5 秒</b>思考时间），也可以用别人打出的牌：</p>
+        <ul>
+          <li><b>吃</b>：上家打出的牌 + 手中 2 张组成一句话，然后打 1 张；</li>
+          <li><b>碰</b>：手中有 2 张与别人打出的牌相同，亮出三张，然后打 1 张；</li>
+          <li><b>煨</b>：手中有 3 张相同，在<b>摸牌前</b>亮出三张——<b>跳过摸牌阶段</b>（不摸牌、不出牌），直接轮到下家；<b>摸到的牌若与手中两张相同（成煨）或与桌上碰/煨凑成第四张（成跑），强制亮出，不可拆散</b>；</li>
+          <li><b>跑</b>：桌上 碰/煨 的牌，别人打出第 4 张可跑，亮成四张；跑<b>不补牌</b>（跳过摸牌），跑后照常打一张（自己摸到第 4 张必须跑，同样不补牌）；</li>
+          <li><b>提</b>：手中有 4 张相同必须提（补摸 1 张）。</li>
+        </ul>
+        <p><b>一句话</b>包括：同字号三连（一二三…）、二七十（贰柒拾，与一二三同规则）、<b>同数混搭</b>（如 叁三三 / 三三叁）。</p>
+        <p><b>组合</b>：出牌阶段可用刚摸到的牌 + 手中两张组成吃/碰形式，若可以则亮出并记入胡息，然后打一张；若不可以则不允许。</p>
+        <p><b>胡牌条件</b>：手牌组成 <b>5 句话</b>（吃、碰、煨、跑、提都算）；<b>每组跑牌少一句话、多一对对子</b>（对子无胡息）。6 胡起胡。</p>
+        <p><b>界面不提示牌型</b>：煨/组合/吃/碰/跑 均为通用按钮（不提示能否成立），自行选牌后由服务器验证，不成立则拒绝；「胡」按钮同样随时可点，不符合条件判诈胡。</p>
+        <p><b>弃牌全展示</b>：打出的牌（牌墙）全部以缩小尺寸显示在桌面中央，最上方大字展示最近一张。</p>
+        <p>优先级：胡 &gt; 跑/碰 &gt; 吃；吃仅限下家。</p>
+        <h3>亮牌（摸牌展示）</h3>
+        <p>每次摸牌都会<b>公开亮出</b>：其余玩家可以抢这张牌——<b>胡 / 跑 / 碰 / 吃</b>（吃仅限下家）；抢牌按优先级结算：<b>胡 &gt; 跑 &gt; 碰 &gt; 吃</b>，同优先级按座位顺序，<b>摸牌者自摸胡最优先</b>。碰/跑/吃者接手出牌（跑不补牌）；无人要则摸牌者继续，按顺序进行。</p>
+        <h3>胡牌（起胡线 6 胡）</h3>
+        <p>手中的牌（含刚摸的牌或别人打出的炮牌）拆成三张组（面子）与对将即可胡：<b>胡牌 = 5 句话</b>（吃、碰、煨、跑、提都算）；<b>每有一组跑牌（四张），少一句话、多一对对子</b>；对子无胡息；已亮出的面子计入总数。</p>
+        <p><b>「胡」按钮随时可点：</b>符合条件即胡牌；不符合条件（含胡数不足 6、不能胡自己打出的牌）判<b>诈胡</b>，各赔另外两家 10 分，对局继续。</p>
+        <h3>胡数计算</h3>
+        <table class="rules-table">
+          <tr><th>牌型</th><th>胡数</th></tr>
+          <tr><td>一句话 · 小字 一二三 / 二七十</td><td>1 胡</td></tr>
+          <tr><td>一句话 · 大字 壹贰叁 / 贰柒拾</td><td>3 胡</td></tr>
+          <tr><td>一句话 · 其他句子 / 混搭（如 叁三三）</td><td>无胡息</td></tr>
+          <tr><td>碰 · 小字（红黑同）</td><td>1 胡</td></tr>
+          <tr><td>碰 · 大字（红黑同）</td><td>3 胡</td></tr>
+          <tr><td>煨 · 小字 / 大字</td><td>3 / 6 胡</td></tr>
+          <tr><td>跑 / 提 · 小字 / 大字</td><td>6 / 12 胡</td></tr>
+          <tr><td>对子（将）</td><td>无胡息</td></tr>
+        </table>
+        <h3>特殊胡型（倍数）</h3>
+        <ul>
+          <li>自摸 ×2</li>
+          <li>天胡 ×4（庄家起手摸牌即胡）</li>
+          <li>地胡 ×2（闲家胡庄家打出的第一张牌）</li>
+          <li>十八小 ×2（胡牌手牌全为小字）、十八大 ×2（全为大字）</li>
+        </ul>
+        <h3>结算</h3>
+        <p>自摸：其余各家各付总分（胡数 × 倍数）；接炮：放炮者付 2 倍总分，其余各家各付 1 倍。<br/>
+        荒庄（牌墙摸完）：流局，分数不变，原庄家连庄；胡牌者下局坐庄。</p>
+      </div>
+      <button class="modal-close primary">知道了</button>
+    </div>
+  </div>
+
+  <!-- ==================== 结算弹窗 ==================== -->
+  <div id="result-modal" class="modal hidden">
+    <div class="modal-box">
+      <h2 id="result-title"></h2>
+      <div id="result-body"></div>
+      <div class="result-actions">
+        <button id="btn-ready-again" class="primary big">再来一局</button>
+        <button id="btn-back-room" class="ghost big">返回房间</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="conn-lost" class="conn-lost hidden">连接中断，正在重连…</div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
